@@ -5,9 +5,27 @@ from os import listdir
 
 def preprocess_images(src, dst, output_size = 800):
     # get all files in src
-    img_paths = [src + '/' + x for x in listdir(src)]
+    try:
+        img_paths = [src + '/' + x for x in listdir(src)]
+    except:
+        print('source path does not exist');
+        return False
+
+    # check if there is any image in src
+    if (len(img_paths) == 0):
+        print('No image exist in '+ src)
+        return False
+
+    # check if dst directory exist
+    if (not os.path.exists(dst)):
+        print('destination path does not exist')
+        return False
+
+    i = 0
+    total_imgs = len(img_paths)
 
     for img_path in img_paths:
+        print('preprocessing image {0} ({0}/{1})'.format(i+1, total_imgs))
         # get the image name and its extension
         img_name = os.path.basename(os.path.splitext(img_path)[0])
         img_extension = os.path.splitext(img_path)[1]
@@ -39,3 +57,6 @@ def preprocess_images(src, dst, output_size = 800):
 
         # save the final preprocessed image
         cv2.imwrite(dst + '/' + img_name + "-preprocessed" + img_extension, g_channel)
+        i += 1
+
+    return True

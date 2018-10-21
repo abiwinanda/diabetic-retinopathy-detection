@@ -1,41 +1,93 @@
+import time
+import copy
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 
-from torchvision import datasets, models, transforms
+from torchvision import models
 
-def get_model(name, depth=16, pretrained=True):
-    if (name == 'alexnet'):
-        net = models.alexnet(pretrained=pretrained)
-        file_name = 'alexnet'
-    elif (name == 'vggnet'):
-        if(depth == 11):
-            net = models.vgg11(pretrained=pretrained)
-        elif(depth == 13):
-            net = models.vgg13(pretrained=pretrained)
-        elif(depth == 16):
-            net = models.vgg16(pretrained=pretrained)
-        elif(depth == 19):
-            net = models.vgg19(pretrained=pretrained)
-        else:
-            print('Error : VGGnet should have depth of either [11, 13, 16, 19]')
-            sys.exit(1)
-        file_name = 'vgg-%s' %(depth)
-    elif (name == 'squeezenet'):
-        net = models.squeezenet1_0(pretrained=pretrained)
-        file_name = 'squeeze'
-    elif (name == 'resnet'):
-        net = models.resnet(pretrained=pretrained)
-        file_name = 'resnet'
+def initialize_model(model_name, num_classes, feature_extract=True, use_pretrained=True):
+    # Initialize these variables which will be set in this if statement. Each of these
+    #   variables is model specific.
+    model_ft = None
+    input_size = 0
+
+    if model_name == "resnet":
+        """ Resnet18
+        """
+        model_ft = models.resnet18(pretrained=use_pretrained)
+        set_parameter_requires_grad(model_ft, feature_extract)
+        num_ftrs = model_ft.fc.in_features
+        model_ft.fc = nn.Linear(num_ftrs, num_classes)
+        input_size = 224
+
+    elif model_name == "alexnet":
+        """ Alexnet
+        """
+        model_ft = models.alexnet(pretrained=use_pretrained)
+        set_parameter_requires_grad(model_ft, feature_extract)
+        num_ftrs = model_ft.classifier[6].in_features
+        model_ft.classifier[6] = nn.Linear(num_ftrs,num_classes)
+        input_size = 224
+
+    elif model_name == "vgg":
+        """ VGG11_bn
+        """
+        model_ft = models.vgg11_bn(pretrained=use_pretrained)
+        set_parameter_requires_grad(model_ft, feature_extract)
+        num_ftrs = model_ft.classifier[6].in_features
+        model_ft.classifier[6] = nn.Linear(num_ftrs,num_classes)
+        input_size = 224
+
+    elif model_name == "squeezenet":
+        """ Squeezenet
+        """
+        model_ft = models.squeezenet1_0(pretrained=use_pretrained)
+        set_parameter_requires_grad(model_ft, feature_extract)
+        model_ft.classifier[1] = nn.Conv2d(512, num_classes, kernel_size=(1,1), stride=(1,1))
+        model_ft.num_classes = num_classes
+        input_size = 224
+
+    elif model_name == "densenet":
+        """ Densenet
+        """
+        model_ft = models.densenet121(pretrained=use_pretrained)
+        set_parameter_requires_grad(model_ft, feature_extract)
+        num_ftrs = model_ft.classifier.in_features
+        model_ft.classifier = nn.Linear(num_ftrs, num_classes)
+        input_size = 224
+
+    elif model_name == "inception":
+        """ Inception v3
+        Be careful, expects (299,299) sized images and has auxiliary output
+        """
+        model_ft = models.inception_v3(pretrained=use_pretrained)
+        set_parameter_requires_grad(model_ft, feature_extract)
+        # Handle the auxilary net
+        num_ftrs = model_ft.AuxLogits.fc.in_features
+        model_ft.AuxLogits.fc = nn.Linear(num_ftrs, num_classes)
+        # Handle the primary net
+        num_ftrs = model_ft.fc.in_features
+        model_ft.fc = nn.Linear(num_ftrs,num_classes)
+        input_size = 299
+
     else:
-        print('Error : Network should be either [alexnet / squeezenet / vggnet / resnet]')
-        sys.exit(1)
+        print("Invalid model name, exiting...")
+        exit()
 
-    return net, file_name
+    return model_ft, input_size
 
-def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_inception=False):
-    since = time.time()
+
+def set_parameter_requires_grad(model, feature_extracting):
+    if feature_extracting:
+        for param in model.parameters():
+            param.requires_grad = False
+
+
+def train_model(model, dataloaders, criterion, optimizer, device, num_epochs=10, is_inception=False):
+    start_time = time.time()
 
     val_acc_history = []
 
@@ -43,20 +95,20 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
     best_acc = 0.0
 
     for epoch in range(num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        print('Epoch {}/{}'.format(epoch + 1, num_epochs))
         print('-' * 10)
 
-        # Each epoch has a training and validation phase
+        # each epoch has a training and validation phase
         for phase in ['train', 'val']:
             if phase == 'train':
-                model.train()  # Set model to training mode
+                model.train()  # set model to training mode
             else:
-                model.eval()   # Set model to evaluate mode
+                model.eval()   # set model to evaluate mode
 
             running_loss = 0.0
             running_corrects = 0
 
-            # Iterate over data.
+            # iterate over data.
             for inputs, labels in dataloaders[phase]:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
@@ -106,24 +158,10 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
 
         print()
 
-    time_elapsed = time.time() - since
+    time_elapsed = time.time() - start_time
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
     print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
     model.load_state_dict(best_model_wts)
     return model, val_acc_history
-
-# class EyeModel(nn.Module):
-#     def __init__(self, num_classes=4):
-#         super(EyeModel, self).__init__()
-#
-#         self.resnet = models.resnet18(pretrained=True)
-#         self.num_features = self.resnet.fc.in_features
-#         self.resnet.fc = nn.Linear(self.num_features, num_classes)
-#         self.input_size = 224
-#
-#     def forward(self, x):
-#         return self.resnet(x)
-#
-#     def set_parameter_requires_grad(self):

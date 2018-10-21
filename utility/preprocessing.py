@@ -3,7 +3,7 @@ import cv2
 
 from os import listdir
 
-def preprocess_images(src, dst, output_size = 800, ):
+def preprocess_images(src, dst, output_size = 800):
     # get all files in src
     img_paths = [src + '/' + x for x in listdir(src)]
 

@@ -96,7 +96,7 @@ def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, train_te
     return True
 
 
-def create_dataloader(data_dir, batch_size, n_thread, shuffle=True):
+def create_dataloader(data_dir, batch_size, n_thread=1, shuffle=True):
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x)) for x in ['train', 'val']}
     dataloaders_dict = {x: DataLoader(image_datasets[x], batch_size = batch_size, shuffle = shuffle, num_workers = n_thread) for x in ['train', 'val']}
 

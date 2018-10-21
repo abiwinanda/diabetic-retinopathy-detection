@@ -56,7 +56,7 @@ def preprocess_images(src, dst, output_size = 800):
             value=color)
 
         # save the final preprocessed image
-        cv2.imwrite(dst + '/' + img_name + "-preprocessed" + img_extension, g_channel)
+        cv2.imwrite(dst + '/' + img_name + img_extension, g_channel)
         i += 1
 
     return True

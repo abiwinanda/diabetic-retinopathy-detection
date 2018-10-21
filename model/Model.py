@@ -165,3 +165,15 @@ def train_model(model, dataloaders, criterion, optimizer, device, num_epochs=10,
     # load best model weights
     model.load_state_dict(best_model_wts)
     return model, val_acc_history
+
+
+def get_trainable_params(model):
+    params_to_update = []
+    print("Params to learn:")
+
+    for name,param in model.named_parameters():
+        if param.requires_grad == True:
+            params_to_update.append(param)
+            print("\t",name)
+
+    return params_to_update

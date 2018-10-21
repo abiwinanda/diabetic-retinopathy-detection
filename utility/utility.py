@@ -1,22 +1,22 @@
-from os import listdir
+import os
 import cv2
 
+from os import listdir
 
 def preprocess_images(src, dst, output_size = 800, ):
     # get all files in src
-    img_paths = [src + x for x in listdir(src)]
-    im_pth = "C:/Users/Wida/test4.jpeg"
+    img_paths = [src + '/' + x for x in listdir(src)]
 
     for img_path in img_paths:
-        # get the image name
-        img_name = None
-        img_extension = None
+        # get the image name and its extension
+        img_name = os.path.basename(os.path.splitext(img_path)[0])
+        img_extension = os.path.splitext(img_path)[1]
 
         # read the image
-        imgOri = cv2.imread(img_path)
+        img = cv2.imread(img_path)
 
         # extract individual channel of the image (b, g, r)
-        b_channel, g_channel, r_channel = cv2.split(imgOri)
+        b_channel, g_channel, r_channel = cv2.split(img)
 
         # CLAHE-ing green channel
         clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(8,8))
@@ -38,4 +38,4 @@ def preprocess_images(src, dst, output_size = 800, ):
             value=color)
 
         # save the final preprocessed image
-        cv2.imwrite(dst + img_name + "-preprocessed" + img_extension, g_channel)
+        cv2.imwrite(dst + '/' + img_name + "-preprocessed" + img_extension, g_channel)

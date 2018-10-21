@@ -48,15 +48,19 @@ def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, train_te
         os.mkdir(val_dir + '/' + label)
 
     # get all images path in src folder
-    src_imgs = [src + '/' + x for x in listdir(x)]
+    src_imgs = [src + '/' + x for x in listdir(src)]
 
     # split to train and val images
     split_index = int(train_test_split * len(src_imgs))
     train_imgs = src_imgs[0:split_index]
-    val_imgs = src_imgs[split_index:]
+
+    if train_test_split != 1:
+        val_imgs = src_imgs[split_index:]
+    else:
+        val_imgs = []
 
     # read the label csv
-    label_dataset = pd.read_csv(label_csv)
+    label_dataset = pd.read_csv(labels_csv)
 
     # train routing
     for train_img in train_imgs:
@@ -71,7 +75,7 @@ def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, train_te
         for key in label_rule.keys():
             if current_img_label in label_rule[key]:
                 # route the image
-                shutil.copyfile(val_img, dst + '/train/' + key + '/' + img_name + img_extension)
+                shutil.copyfile(train_img, dst + '/train/' + key + '/' + img_name + img_extension)
 
     # val routing
     for val_img in val_imgs:

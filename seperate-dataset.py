@@ -5,7 +5,7 @@ parser = argparse.ArgumentParser(description='script to seperate dataset to thei
 parser.add_argument('--src', '-s', help='path to images that want to be seperated')
 parser.add_argument('--dst', '-d', help='location to create the train and val folder')
 parser.add_argument('--csv', '-c', help='path to the csv file that contain the labels')
-parser.add_argument('--split', type=float, help='path to the csv file that contain the labels')
+parser.add_argument('--split', type=float, help='train test split ratio')
 args = parser.parse_args()
 
 if __name__ == '__main__':

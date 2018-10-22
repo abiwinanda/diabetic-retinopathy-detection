@@ -7,7 +7,7 @@ from os import listdir
 from torch.utils.data import DataLoader
 from torchvision import datasets
 
-def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, train_test_split=0.8):
+def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, eff=1, train_test_split=0.8):
     # check if src folder exist
     if (not os.path.exists(src)):
         print('source path does not exist')
@@ -47,8 +47,9 @@ def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, train_te
         os.mkdir(train_dir + '/' + label)
         os.mkdir(val_dir + '/' + label)
 
-    # get all images path in src folder
-    src_imgs = [src + '/' + x for x in listdir(src)]
+    # get images path in src folder as specified by the efficiency
+    num_of_imgs_in_src = len(listdir(src))
+    src_imgs = [src + '/' + x for x in listdir(src)[0:int(eff * num_of_imgs_in_src)]]
 
     # split to train and val images
     split_index = int(train_test_split * len(src_imgs))

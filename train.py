@@ -15,7 +15,7 @@ parser.add_argument('--dataset', '-d', help='path to dataset folder that contain
 parser.add_argument('--batch', '-b', type=int, default=32, help='batch size')
 parser.add_argument('--gpu', '-g', type=int, default=1, help='number of gpu to train')
 parser.add_argument('--epoch', '-e', type=int, default=10, help='number of epoch')
-parser.add_argument('--output', '-o', default='./', help='path to save the trained weights')
+parser.add_argument('--output', '-o', default='eye-model.pth', help='file name of the model with .pth extension')
 args = parser.parse_args()
 
 if __name__ == '__main__':
@@ -27,14 +27,14 @@ if __name__ == '__main__':
         print('Please specify the path to dataset folder with -d flag')
     else:
         # initialize the model
-        net = initialize_model(args.model, args.classes, args.fe, args.pretrained)
+        net, _ = initialize_model(args.model, args.classes, args.feature, args.pretrained)
 
-        # send net to gpu
+        # send net to gpu if exist
         if args.gpu != 0:
             device = torch.device('cuda:0' if torch.cuda.is_avalable() else 'cpu')
+            net = nn.DataParallel(net)
         else:
             device = torch.device('cpu')
-        net = nn.DataParallel(net)
         net = net.to(device)
 
         # set the loss function

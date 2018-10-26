@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 from os import listdir
 
-def preprocess_images(src, dst, output_size = 800):
+def preprocess_images(src, dst, output_size = 512):
     # get all files in src
     try:
         img_paths = [src + '/' + x for x in listdir(src)]
@@ -40,10 +40,10 @@ def preprocess_images(src, dst, output_size = 800):
         # CLAHE-ing green channel
         clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(8,8))
         g_channel = clahe.apply(g_channel)
-        
+
         # image normalization (0-1)
         normalization = cv2.normalize(g_channel, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-        
+
         # resizing the image
         old_size = normalization.shape[:2] # old_size is in (height, width) format
         ratio = float(output_size)/max(old_size)
@@ -57,12 +57,12 @@ def preprocess_images(src, dst, output_size = 800):
         left, right = delta_w//2, delta_w-(delta_w//2)
         color = [0, 0, 0]
         normalization = cv2.copyMakeBorder(normalization, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
-        
+
         # convert image memory to array
         im = Image.fromarray(normalization)
-                
+
         # save the final preprocessed image in .tiff
-        im.save(dst + '/' + img_name + '.tiff')
+        im.save(dst + '/' + img_name + '.tif')
         i += 1
 
     return True

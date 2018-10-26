@@ -1,9 +1,10 @@
 import os
 import cv2
-
+import numpy as np
+from PIL import Image
 from os import listdir
 
-def preprocess_images(src, dst, output_size = 800):
+def preprocess_images(src, dst, output_size = 512):
     # get all files in src
     try:
         img_paths = [src + '/' + x for x in listdir(src)]
@@ -40,11 +41,14 @@ def preprocess_images(src, dst, output_size = 800):
         clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(8,8))
         g_channel = clahe.apply(g_channel)
 
+        # image normalization (0-1)
+        normalization = cv2.normalize(g_channel, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+
         # resizing the image
-        old_size = g_channel.shape[:2] # old_size is in (height, width) format
+        old_size = normalization.shape[:2] # old_size is in (height, width) format
         ratio = float(output_size)/max(old_size)
         new_size = tuple([int(x*ratio) for x in old_size])
-        g_channel = cv2.resize(g_channel, (new_size[1], new_size[0])) # new_size should be in (width, height) format
+        normalization = cv2.resize(normalization, (new_size[1], new_size[0])) # new_size should be in (width, height) format
 
         # zero padding the image
         delta_w = output_size - new_size[1]
@@ -52,11 +56,13 @@ def preprocess_images(src, dst, output_size = 800):
         top, bottom = delta_h//2, delta_h-(delta_h//2)
         left, right = delta_w//2, delta_w-(delta_w//2)
         color = [0, 0, 0]
-        g_channel = cv2.copyMakeBorder(g_channel, top, bottom, left, right, cv2.BORDER_CONSTANT,
-            value=color)
+        normalization = cv2.copyMakeBorder(normalization, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
 
-        # save the final preprocessed image
-        cv2.imwrite(dst + '/' + img_name + img_extension, g_channel)
+        # convert image memory to array
+        im = Image.fromarray(normalization)
+
+        # save the final preprocessed image in .tiff
+        im.save(dst + '/' + img_name + '.tif')
         i += 1
 
     return True

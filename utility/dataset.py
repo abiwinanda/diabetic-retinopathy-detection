@@ -5,7 +5,7 @@ import torch
 
 from os import listdir
 from torch.utils.data import DataLoader
-from torchvision import datasets
+from torchvision import datasets, transforms
 
 def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, eff=1, train_test_split=0.8):
     # check if src folder exist
@@ -98,7 +98,13 @@ def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, eff=1, t
 
 
 def create_dataloader(data_dir, batch_size, n_gpu=1, shuffle=True):
-    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x)) for x in ['train', 'val']}
-    dataloaders_dict = {x: DataLoader(image_datasets[x], batch_size = batch_size, shuffle = shuffle, num_workers = 4 * n_gpu) for x in ['train', 'val']}
+    # create ToTensor tranform
+    transform = transforms.Compose([
+        transforms.ToTensor()
+    ])
+
+    # create the dataloader
+    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), transform) for x in ['train', 'val']}
+    dataloaders_dict = {x: DataLoader(image_datasets[x], batch_size = batch_size, shuffle = shuffle, num_workers = 4) for x in ['train', 'val']}
 
     return dataloaders_dict

@@ -64,7 +64,11 @@ def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, eff=1, t
     label_dataset = pd.read_csv(labels_csv)
 
     # train routing
+    print('--- Train routing start ---')
+    i = 0
     for train_img in train_imgs:
+        print('routing train image {0} ({0}/{1})'.format(i+1, len(train_imgs)))
+
         # get the img name path
         img_name = os.path.basename(os.path.splitext(train_img)[0])
         img_extension = os.path.splitext(train_img)[1]
@@ -78,8 +82,16 @@ def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, eff=1, t
                 # route the image
                 shutil.copyfile(train_img, dst + '/train/' + key + '/' + img_name + img_extension)
 
+        i += 1
+    print('--- Train routing done ---')
+    print()
+
     # val routing
+    print('--- Val routing start ---')
+    i = 0
     for val_img in val_imgs:
+        print('routing val {0} ({0}/{1})'.format(i+1, len(val_imgs)))
+
         # get the img name path
         img_name = os.path.basename(os.path.splitext(val_img)[0])
         img_extension = os.path.splitext(val_img)[1]
@@ -92,6 +104,9 @@ def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, eff=1, t
             if current_img_label in label_rule[key]:
                 # route the image
                 shutil.copyfile(val_img, dst + '/val/' + key + '/' + img_name + img_extension)
+
+        i += 1
+    print('--- Val routing done ---')
 
     # success
     return True

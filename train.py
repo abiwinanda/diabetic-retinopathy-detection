@@ -1,3 +1,4 @@
+import os
 import argparse
 import torch
 import torch.nn as nn
@@ -15,7 +16,7 @@ parser.add_argument('--dataset', '-d', help='path to dataset folder that contain
 parser.add_argument('--batch', '-b', type=int, default=32, help='batch size')
 parser.add_argument('--gpu', '-g', type=int, default=1, help='number of gpu to train')
 parser.add_argument('--epoch', '-e', type=int, default=10, help='number of epoch')
-parser.add_argument('--output', '-o', default='eye-model.pth', help='file name of the model with .pth extension')
+parser.add_argument('--output', '-o', default='saved_model/eye-model.pth', help='file name of the model with .pth extension')
 args = parser.parse_args()
 
 if __name__ == '__main__':
@@ -26,6 +27,18 @@ if __name__ == '__main__':
     elif args.dataset == None:
         print('Please specify the path to dataset folder with -d flag')
     else:
+        # early check if the saved model directory is exist yet
+        if args.output == None:
+            # user does not specify the saved model directory
+            # check if saved_model directory is exist instead
+            if not os.path.exists('saved_model'):
+                os.mkdir('saved_model')
+        else:
+            # get directory name of the saved model
+            saved_model_dir = os.path.dirname(args.output)
+            if not os.path.exists(saved_model_dir) and saved_model_dir != '':
+                os.mkdir(saved_model_dir)
+
         # initialize the model
         net, _ = initialize_model(args.model, args.classes, args.feature, args.pretrained)
 

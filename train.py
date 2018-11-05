@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
         # send net to gpu if exist
         if args.gpu != 0:
-            device = torch.device('cuda:0' if torch.cuda.is_avalable() else 'cpu')
+            device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
             net = nn.DataParallel(net)
         else:
             device = torch.device('cpu')

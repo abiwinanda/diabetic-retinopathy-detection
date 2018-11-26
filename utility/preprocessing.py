@@ -33,6 +33,20 @@ def preprocess_images(src, dst, output_size = 512):
 
         # read the image
         img = cv2.imread(img_path)
+		
+		# resizing the image
+        old_size = img.shape[:2] # old_size is in (height, width) format
+        ratio = float(output_size)/max(old_size)
+        new_size = tuple([int(x*ratio) for x in old_size])
+        img = cv2.resize(img, (new_size[1], new_size[0])) # new_size should be in (width, height) format
+
+        # zero padding the image
+        delta_w = output_size - new_size[1]
+        delta_h = output_size - new_size[0]
+        top, bottom = delta_h//2, delta_h-(delta_h//2)
+        left, right = delta_w//2, delta_w-(delta_w//2)
+        color = [0, 0, 0]
+        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
 
         # extract individual channel of the image (b, g, r)
         b_channel, g_channel, r_channel = cv2.split(img)
@@ -43,20 +57,6 @@ def preprocess_images(src, dst, output_size = 512):
 
         # image normalization (0-1)
         normalization = cv2.normalize(g_channel, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-
-        # resizing the image
-        old_size = normalization.shape[:2] # old_size is in (height, width) format
-        ratio = float(output_size)/max(old_size)
-        new_size = tuple([int(x*ratio) for x in old_size])
-        normalization = cv2.resize(normalization, (new_size[1], new_size[0])) # new_size should be in (width, height) format
-
-        # zero padding the image
-        delta_w = output_size - new_size[1]
-        delta_h = output_size - new_size[0]
-        top, bottom = delta_h//2, delta_h-(delta_h//2)
-        left, right = delta_w//2, delta_w-(delta_w//2)
-        color = [0, 0, 0]
-        normalization = cv2.copyMakeBorder(normalization, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
 
         # convert image memory to array
         im = Image.fromarray(normalization)

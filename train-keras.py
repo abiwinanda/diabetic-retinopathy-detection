@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from keras.utils.np_utils import to_categorical
 import cv2
 import numpy as np
-from model import model
+from utility.model_keras import model
 from PIL import Image
 import tifffile as tiff
 from keras import callbacks

@@ -11,9 +11,6 @@ import tifffile as tiff
 from keras import callbacks
 from keras.models import load_model
 
-#base_image_dir = "./train_preprocessed/"
-#retina_df = pd.read_csv('trainLabels.csv')
-
 base_image_dir = "./mixed-dataset/preprocessed_3channel/"
 retina_df = pd.read_csv("./mixed-dataset/trainLabels.csv")
 
@@ -22,11 +19,8 @@ retina_df['path'] = retina_df['image'].map(lambda x: os.path.join(base_image_dir
 retina_df['exists'] = retina_df['path'].map(os.path.exists)
 print(retina_df['exists'].sum(), 'images found of', retina_df.shape[0], 'total')
 
-#retina_df.dropna(inplace = True)
-#retina_df = retina_df[retina_df['exists']]
+# class labeling
 retina_df['level_binary']=retina_df['level'].map(lambda x: 0 if x == 0 else 1)
-
-#retina_df = retina_df[retina_df.exists == True]
 
 class_0 = retina_df[retina_df.level_binary == 0].index
 random_indices = np.random.choice(class_0, 5000, replace=False)
@@ -69,8 +63,8 @@ def prepare_data(image_path):
     """
     Preparing image data.
     :param image_path: list of image to be processed
-    
-    Return: 
+
+    Return:
             x: array of resized images
             y: array of labels
     """
@@ -96,11 +90,8 @@ Y_train = np.array(undersampled_train.level_binary)
 X_val = prepare_data(undersampled_val.path)
 Y_val = np.array(undersampled_val.level_binary)
 
-#X = np.concatenate((X_train,X_val), axis=0)
-#Y = np.concatenate((Y_train,Y_val), axis=0)
-
 model = model(X_train.shape[1], X_train.shape[2], 2, 2e-4)
-#model = load_model("./saved_model/xception_dr.hdf5")
+# model = load_model("./saved_model/xception_dr.hdf5")
 model.summary()
 batch_size = 8
 
@@ -108,18 +99,17 @@ model_name = "xception_dr_v5.hdf5"
 model_dir = "saved_model"
 if os.path.exists("saved_model") == False:
     os.makedirs("saved_model")
-    
+
 filepath = model_dir + '/' + model_name
 
-#os.mkdir("modell")
-#filepath = "CityScapes.hdf5"
 checkpoint = callbacks.ModelCheckpoint(filepath, monitor = 'val_acc', save_best_only=True, save_weights_only=False,
                                   verbose = 1)
+                                  
 tensorboard = callbacks.TensorBoard(log_dir='./logdir_'+model_name.split(".")[0], batch_size=batch_size, write_images=True)
 
 callbacks_list = [checkpoint, tensorboard]
 
-model.fit(X_train, Y_train, epochs=10, batch_size = batch_size, callbacks=callbacks_list, 
+model.fit(X_train, Y_train, epochs=10, batch_size = batch_size, callbacks=callbacks_list,
           validation_data = (X_val, Y_val))
 
 

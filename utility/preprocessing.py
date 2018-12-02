@@ -9,7 +9,7 @@ CROP_LENGTH_OUT_OF_IMG_BOUND = 1
 CROP_LENGTH_OUT_OF_EYE_BOUND = 2
 CROP_LENGTH_INSIDE_OF_EYE_BOUND = 3
 
-def preprocess_images(src, dst, centre_crop, format, output_size = 512):
+def preprocess_images(src, partial_list, dst, centre_crop, format, output_size = 512):
     # get all files in src
     try:
         img_paths = [src + '/' + x for x in listdir(src)]
@@ -28,13 +28,24 @@ def preprocess_images(src, dst, centre_crop, format, output_size = 512):
         os.mkdir(dst)
 
     i = 0
-    total_imgs = len(img_paths)
+
+    if partial_list == None:
+        total_imgs = len(img_paths)
+    else:
+        total_imgs = len(partial_list)
 
     for img_path in img_paths:
-        print('preprocessing image {0} ({0}/{1})'.format(i+1, total_imgs))
         # get the image name and its extension
         img_name = os.path.basename(os.path.splitext(img_path)[0])
         img_extension = os.path.splitext(img_path)[1]
+
+        # skip preprocessing if partial list is used
+        if partial_list != None:
+            if img_name not in partial_list:
+                continue
+
+        # start preprocessing
+        print('preprocessing image {0} ({0}/{1})'.format(i+1, total_imgs))
 
         # read the image
         img = cv2.imread(img_path)

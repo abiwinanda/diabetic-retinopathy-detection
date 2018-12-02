@@ -1,1 +1,5 @@
 utility/_pycache_
+.floydexpt
+.floydignore
+floyd.yml
+floyd_requirements.txt

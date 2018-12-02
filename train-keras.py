@@ -4,7 +4,7 @@ import keras
 import argparse
 import numpy as np
 import pandas as pd
-import tifffile as tiff
+#import tifffile as tiff
 import matplotlib.pyplot as plt
 
 from PIL import Image
@@ -88,7 +88,7 @@ if __name__ == '__main__':
         X_val = prepare_data(undersampled_val.path, args.norm)
         Y_val = np.array(undersampled_val.level_binary)
 
-        model = model(X_train.shape[1], X_train.shape[2], 2, 2e-4)
+        model = model(X_train.shape[1], X_train.shape[2], 2, 2e-4, 5e-4)
         if (args.model != None):
             model = load_model(args.model)
         model.summary()

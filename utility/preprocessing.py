@@ -9,7 +9,7 @@ CROP_LENGTH_OUT_OF_IMG_BOUND = 1
 CROP_LENGTH_OUT_OF_EYE_BOUND = 2
 CROP_LENGTH_INSIDE_OF_EYE_BOUND = 3
 
-def preprocess_images(src, dst, format, output_size = 512):
+def preprocess_images(src, dst, centre_crop, format, output_size = 512):
     # get all files in src
     try:
         img_paths = [src + '/' + x for x in listdir(src)]
@@ -40,7 +40,8 @@ def preprocess_images(src, dst, format, output_size = 512):
         img = cv2.imread(img_path)
 
         # centre crop the image
-        img = fit_crop(img)
+        if (centre_crop):
+            img = fit_crop(img)
 
 		# resizing the image
         img = cv2.resize(img, (output_size, output_size)) # new_size should be in (width, height) format

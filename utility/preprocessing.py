@@ -95,7 +95,7 @@ def find_crop(img, crop_length):
     starting_x = int((img_width - crop_length) / 2)
     starting_y = int((img_height - crop_length) / 2)
 
-    if (img[starting_y][starting_x][0] < 50):
+    if (img[starting_y][starting_x][0] < 15 and img[starting_y][starting_x][1] < 15 and img[starting_y][starting_x][2] < 15):
         return CROP_LENGTH_OUT_OF_EYE_BOUND
     else:
         return CROP_LENGTH_INSIDE_OF_EYE_BOUND

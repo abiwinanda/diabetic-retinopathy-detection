@@ -19,6 +19,8 @@ parser.add_argument('--src', '-s', help='path to dataset')
 parser.add_argument('--csv', '-c', help='path to the csv file that contain the labels')
 parser.add_argument('--model', '-m', help='path to the pretrained model')
 parser.add_argument('--epoch', '-e', type=int, default=10, help='number of epoch to train the model')
+parser.add_argument('--lr', '-l', type=float, default=2e-4, help='learning rate')
+parser.add_argument('--decay', '-d', type=float, default=5e-4, help='decay rate')
 parser.add_argument('--batch', '-b', type=int, default=8, help='batch size to train the model')
 parser.add_argument('--norm', '-n', type=int, default=0, help='normalization range (0: [-1,1], else: [0,1])')
 parser.add_argument('--output', '-o', default='eye-model-keras.hdf5', help='name of model output (with .hdf5 extension)')
@@ -41,6 +43,7 @@ if __name__ == '__main__':
 
         # class labeling (0 => Healthy, else => DR)
         retina_df['level_binary']=retina_df['level'].map(lambda x: 0 if x == 0 else 1)
+        n_class = retina_df['level_binary'].value_counts().index.size
 
         # steps:
         # 1: get the index of label that has label or level_binary equal to 0 (healthy)
@@ -88,7 +91,7 @@ if __name__ == '__main__':
         X_val = prepare_data(undersampled_val.path, args.norm)
         Y_val = np.array(undersampled_val.level_binary)
 
-        model = model(X_train.shape[1], X_train.shape[2], 2, 2e-4, 5e-4)
+        model = model(X_train.shape[1], X_train.shape[2], n_class, args.lr, args.decay)
         if (args.model != None):
             model = load_model(args.model)
         model.summary()

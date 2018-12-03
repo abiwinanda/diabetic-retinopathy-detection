@@ -106,7 +106,8 @@ if __name__ == '__main__':
         tensorboard = callbacks.TensorBoard(log_dir='./logdir_'+args.output.split(".")[0], batch_size=args.batch, write_images=True)
         callbacks_list = [checkpoint, tensorboard]
         
-        if args.augmentation:
+        if args.augmentation == True:
+            print("Proceeding to augmentation")
             datagen = ImageDataGenerator(
             featurewise_center=False,
             featurewise_std_normalization=False,

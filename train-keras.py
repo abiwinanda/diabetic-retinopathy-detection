@@ -13,6 +13,7 @@ from keras.models import load_model
 from keras.utils.np_utils import to_categorical
 from utility.model_keras import model
 from utility.dataset_keras import prepare_data, create_confusion_matrix
+from keras.preprocessing.image import ImageDataGenerator
 
 parser = argparse.ArgumentParser(description='keras training script')
 parser.add_argument('--src', '-s', help='path to dataset')
@@ -22,6 +23,7 @@ parser.add_argument('--epoch', '-e', type=int, default=10, help='number of epoch
 parser.add_argument('--lr', '-l', type=float, default=2e-4, help='learning rate')
 parser.add_argument('--decay', '-d', type=float, default=5e-4, help='decay rate')
 parser.add_argument('--batch', '-b', type=int, default=8, help='batch size to train the model')
+parser.add_argument('--augmentation', '-a', action='store_true', help='if set then augmentation will be implemented (default false)')
 parser.add_argument('--norm', '-n', type=int, default=0, help='normalization range (0: [-1,1], else: [0,1])')
 parser.add_argument('--output', '-o', default='eye-model-keras.hdf5', help='name of model output (with .hdf5 extension)')
 parser.add_argument('--excel', '-x', default='confusion-matrix', help='name of excel file containing the confusion matrix (without .xlsx extension)')
@@ -104,6 +106,24 @@ if __name__ == '__main__':
         tensorboard = callbacks.TensorBoard(log_dir='./logdir_'+args.output.split(".")[0], batch_size=args.batch, write_images=True)
         callbacks_list = [checkpoint, tensorboard]
 
-        model.fit(X_train, Y_train, epochs=args.epoch, batch_size = args.batch, callbacks=callbacks_list, validation_data = (X_val, Y_val))
+        if args.augmentation == True:
+            print("Proceeding to augmentation")
+            datagen = ImageDataGenerator(
+            featurewise_center=False,
+            featurewise_std_normalization=False,
+            rotation_range=17,
+            width_shift_range=0.1,
+            height_shift_range=0.1,
+            horizontal_flip=True)
+
+            datagen.fit(X_train)
+
+            model.fit_generator(datagen.flow(X_train, Y_train, batch_size = args.batch),
+                                steps_per_epoch=len(X_train)//args.batch,
+                                epochs=args.epoch,validation_data=(X_val, Y_val),
+                                validation_steps=len(X_val)//args.batch,callbacks=callbacks_list)
+        else:
+            model.fit(X_train, Y_train, batch_size=args.batch, epochs=args.epoch,
+                      validation_data=(X_val, Y_val), callbacks=callbacks_list)
 
         create_confusion_matrix(model, args.batch, X_val, Y_val, args.excel)

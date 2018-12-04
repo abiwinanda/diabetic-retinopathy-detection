@@ -9,7 +9,7 @@ CROP_LENGTH_OUT_OF_IMG_BOUND = 1
 CROP_LENGTH_OUT_OF_EYE_BOUND = 2
 CROP_LENGTH_INSIDE_OF_EYE_BOUND = 3
 
-def preprocess_images(src, partial_list, dst, centre_crop, format, output_size = 512):
+def preprocess_images(src, partial_list, dst, clahe_channels, centre_crop, format, output_size = 512):
     # get all files in src
     try:
         img_paths = [src + '/' + x for x in listdir(src)]
@@ -57,15 +57,8 @@ def preprocess_images(src, partial_list, dst, centre_crop, format, output_size =
 		# resizing the image
         img = cv2.resize(img, (output_size, output_size)) # new_size should be in (width, height) format
 
-        # extract individual channel of the image (b, g, r)
-        b_channel, g_channel, r_channel = cv2.split(img)
-
-        # CLAHE-ing green channel
-        clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(8,8))
-        g_channel = clahe.apply(g_channel)
-
-        # merge all color channels
-        img = cv2.merge([r_channel, g_channel, b_channel])
+        # CLAHE-ing
+        img = clahe(img, clahe_channels)
 
         # convert image memory to array
         img = Image.fromarray(img)
@@ -125,3 +118,23 @@ def centre_crop(img, crop_length):
     cropped_img = img[starting_y:ending_y, starting_x:ending_x, :]
 
     return cropped_img
+
+def clahe(img, clahe_channels):
+    # extract individual channel of the image (b, g, r)
+    b_channel, g_channel, r_channel = cv2.split(img)
+
+    # CLAHE-ing
+    clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(8,8))
+    if 'R' in clahe_channels:
+        r_channel = clahe.apply(r_channel)
+
+    if 'G' in clahe_channels:
+        g_channel = clahe.apply(g_channel)
+
+    if 'B' in clahe_channels:
+        b_channel = clahe.apply(b_channel)
+
+    # merge all color channels
+    output_img = cv2.merge([r_channel, g_channel, b_channel])
+
+    return output_img

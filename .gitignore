@@ -1,5 +1,7 @@
-utility/_pycache_
+utility/__pycache__/
 .floydexpt
+.floyddata
 .floydignore
 floyd.yml
 floyd_requirements.txt
+setup.sh

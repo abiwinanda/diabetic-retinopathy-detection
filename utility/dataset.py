@@ -1,11 +1,11 @@
 import os
 import shutil
 import pandas as pd
-import torch
+#import torch
 
 from os import listdir
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+#from torch.utils.data import DataLoader
+#from torchvision import datasets, transforms
 
 def seperate_dataset_to_labels_folder(src, dst, labels_csv, label_rule, eff=1, train_test_split=0.8):
     # check if src folder exist

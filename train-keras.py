@@ -23,7 +23,7 @@ parser.add_argument('--epoch', '-e', type=int, default=10, help='number of epoch
 parser.add_argument('--lr', '-l', type=float, default=2e-4, help='learning rate')
 parser.add_argument('--decay', '-d', type=float, default=5e-4, help='decay rate')
 parser.add_argument('--batch', '-b', type=int, default=8, help='batch size to train the model')
-parser.add_argument('--augmentation', '-a', type=bool, default=False, help='whether wants to add augmentation or not')
+parser.add_argument('--augmentation', '-a', type=int, default=0, help='0: augmentation else not')
 parser.add_argument('--norm', '-n', type=int, default=0, help='normalization range (0: [-1,1], else: [0,1])')
 parser.add_argument('--output', '-o', default='eye-model-keras.hdf5', help='name of model output (with .hdf5 extension)')
 parser.add_argument('--excel', '-x', default='confusion-matrix', help='name of excel file containing the confusion matrix (without .xlsx extension)')
@@ -93,9 +93,15 @@ if __name__ == '__main__':
         X_val = prepare_data(undersampled_val.path, args.norm)
         Y_val = np.array(undersampled_val.level_binary)
         
-        model = model(X_train.shape[1], X_train.shape[2], n_class, args.lr, args.decay)
-        if (args.model != None):
+        if (args.model == None):
+            model = model(X_train.shape[1], X_train.shape[2], n_class, args.lr, args.decay)
+        elif (args.model != None):
             model = load_model(args.model)
+            for i, layers in enumerate(model.layers):
+                if i <= 121:
+                    layers.trainable = False
+                else:
+                    layers.trainable = True
         model.summary()
 
         if os.path.exists('saved_model') == False:
@@ -106,7 +112,7 @@ if __name__ == '__main__':
         tensorboard = callbacks.TensorBoard(log_dir='./logdir_'+args.output.split(".")[0], batch_size=args.batch, write_images=True)
         callbacks_list = [checkpoint, tensorboard]
         
-        if args.augmentation == True:
+        if (args.augmentation == 0):
             print("Proceeding to augmentation")
             datagen = ImageDataGenerator(
             featurewise_center=False,
@@ -121,7 +127,8 @@ if __name__ == '__main__':
             model.fit_generator(datagen.flow(X_train, Y_train, batch_size = args.batch), 
                                 steps_per_epoch=len(X_train)//args.batch, 
                                 epochs=args.epoch,validation_data=(X_val, Y_val), 
-                                validation_steps=len(X_val)//args.batch,callbacks=callbacks_list)
+                                validation_steps=len(X_val)//args.batch,callbacks=callbacks_list,
+                                use_multiprocessing=False)
         else:
             model.fit(X_train, Y_train, batch_size=args.batch, epochs=args.epoch, 
                       validation_data=(X_val, Y_val), callbacks=callbacks_list)

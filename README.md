@@ -11,7 +11,6 @@ This project aims to develop a machine learning model capable of detecting diabe
   - [2. Dataset Separation](#2-dataset-separation)
   - [3. Model Training](#3-model-training)
 - [Utility Functions](#utility-functions)
-- [Contributors](#contributors)
 
 ---
 
